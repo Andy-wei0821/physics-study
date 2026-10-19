@@ -732,13 +732,13 @@ select.setting-input { padding: 8px 12px; border: 1px solid var(--border); borde
 
 <!-- Mobile Topbar（手机端顶部，含标题与更多入口）——放在 .app 之外，避免被 flex 布局挤压 -->
 <div class="mobile-topbar">
-  <div class="mtb-title"><span class="mtb-badge">初</span>初中物理智能训练 <span style="font-size:10px;background:#e70012;color:#fff;border-radius:8px;padding:1px 6px;vertical-align:2px;">v2.6 全量版 · 10-18晚</span></div>
+  <div class="mtb-title"><span class="mtb-badge">初</span>初中物理智能训练 <span style="font-size:10px;background:#e70012;color:#fff;border-radius:8px;padding:1px 6px;vertical-align:2px;">v2.7 全量版 · 10-19</span></div>
   <div class="mtb-more" onclick="openMobileSheet()">更多 <span>☰</span></div>
 </div>
 <div class="app">
   <!-- Sidebar -->
   <nav class="sidebar">
-    <div class="sidebar-logo">初中物理智能训练 <span style="font-size:10px;background:#e70012;color:#fff;border-radius:8px;padding:1px 6px;vertical-align:2px;">v2.6 全量版 · 10-18晚</span><small>人教版 · 深圳中考物理 · 每天40分钟</small></div>
+    <div class="sidebar-logo">初中物理智能训练 <span style="font-size:10px;background:#e70012;color:#fff;border-radius:8px;padding:1px 6px;vertical-align:2px;">v2.7 全量版 · 10-19</span><small>人教版 · 深圳中考物理 · 每天40分钟</small></div>
     <div class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span>学习面板</div>
     <div class="nav-item" data-page="training"><span class="nav-icon">✏️</span>每日训练</div>
     <div class="nav-item" data-page="errors"><span class="nav-icon">📕</span>错题本</div>
@@ -6912,7 +6912,7 @@ function renderPlaneMirror() {
     '<text x="360" y="240" fill="#37474f" font-size="12">平面镜</text>' +
     '<g id="object-arrow"><line x1="200" y1="140" x2="200" y2="100" stroke="#d32f2f" stroke-width="3"/>' +
     '<polygon points="195,103 200,95 205,103" fill="#d32f2f"/>' +
-    '<text x="190" y="125" fill="#d32f2f" font-size="11">物体</text></g>' +
+    '<text x="148" y="125" fill="#d32f2f" font-size="11">物体</text></g>' +
     '<g id="image-arrow"></g>' +
     '</svg>' +
     '<div class="slider-row">' +
@@ -7469,14 +7469,17 @@ function updateLensImaging(u, f) {
 function updatePlaneMirror(objX) {
   var svg = document.getElementById('mirror-svg');
   if (!svg) return;
-  // 物体在镜前 objX 像素处；像在镜另一侧 objX 像素处
+  // 口径统一：滑条值 objX 就是"物体到镜面的实际距离"。
+  // 镜面固定在 x=350，物体画在镜左侧 350-objX 处，像画在镜右侧 350+objX 处（等距对称）。
+  // 滑条向右拉 = 距离变大 = 物体远离镜面，图形与数字同向。
+  var mirrorX = 350;
   var obj = svg.querySelector('#object-arrow');
   var img = svg.querySelector('#image-arrow');
-  if (obj) obj.setAttribute('transform', 'translate(' + (objX - 200) + ', 0)');
+  // 物体组内部坐标按"距镜 150"画（物体在 x=200），平移量 = 150 - objX
+  if (obj) obj.setAttribute('transform', 'translate(' + (150 - objX) + ', 0)');
   if (img) {
     img.innerHTML = '';
-    var mirrorX = 350;
-    var imgX = mirrorX + (mirrorX - objX);
+    var imgX = mirrorX + objX;
     var ns = 'http://www.w3.org/2000/svg';
     var line = document.createElementNS(ns, 'line');
     line.setAttribute('x1', imgX); line.setAttribute('y1', 140);
@@ -7488,14 +7491,15 @@ function updatePlaneMirror(objX) {
     arrow.setAttribute('fill', '#1976d2');
     img.appendChild(arrow);
     var t = document.createElementNS(ns, 'text');
-    t.setAttribute('x', imgX - 25); t.setAttribute('y', 125);
-    t.setAttribute('fill', '#1976d2'); t.setAttribute('font-size', '11');
+    t.setAttribute('x', imgX + 6); t.setAttribute('y', 125);
+    t.setAttribute('fill', '#1976d2');
+    t.setAttribute('font-size', '11');
     t.textContent = '像';
     img.appendChild(t);
   }
   var ro = document.getElementById('readout-plane_mirror');
   if (ro) {
-    ro.innerHTML = '物距 = 像距 = ' + (350 - objX) + ' px<br>像与物等大、虚像、左右相反';
+    ro.innerHTML = '物距 = 像距 = ' + objX + ' px<br>像与物等大、虚像、左右相反';
   }
 }
 
@@ -8015,6 +8019,9 @@ function showInteractive(id) {
   main.innerHTML = `<button class="btn btn-outline" onclick="document.getElementById('interactive-main').innerHTML='';renderInteractivePage2();">← 返回实验列表</button>` +
     renderInteractive(id);
   setTimeout(bindInteractiveEvents, 50);
+  // 点「进入实验」直接跳到实验界面，不用手动往下滚
+  try { main.scrollIntoView({ block: 'start', behavior: 'auto' }); }
+  catch (e) { try { main.scrollIntoView(); } catch (e2) {} }
 }
 
 function renderInteractivePage2() {
