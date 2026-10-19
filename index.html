@@ -732,13 +732,13 @@ select.setting-input { padding: 8px 12px; border: 1px solid var(--border); borde
 
 <!-- Mobile Topbar（手机端顶部，含标题与更多入口）——放在 .app 之外，避免被 flex 布局挤压 -->
 <div class="mobile-topbar">
-  <div class="mtb-title"><span class="mtb-badge">初</span>初中物理智能训练 <span style="font-size:10px;background:#e70012;color:#fff;border-radius:8px;padding:1px 6px;vertical-align:2px;">v2.7 全量版 · 10-19</span></div>
+  <div class="mtb-title"><span class="mtb-badge">初</span>初中物理智能训练 <span style="font-size:10px;background:#e70012;color:#fff;border-radius:8px;padding:1px 6px;vertical-align:2px;">v2.8 全量版 · 10-19</span></div>
   <div class="mtb-more" onclick="openMobileSheet()">更多 <span>☰</span></div>
 </div>
 <div class="app">
   <!-- Sidebar -->
   <nav class="sidebar">
-    <div class="sidebar-logo">初中物理智能训练 <span style="font-size:10px;background:#e70012;color:#fff;border-radius:8px;padding:1px 6px;vertical-align:2px;">v2.7 全量版 · 10-19</span><small>人教版 · 深圳中考物理 · 每天40分钟</small></div>
+    <div class="sidebar-logo">初中物理智能训练 <span style="font-size:10px;background:#e70012;color:#fff;border-radius:8px;padding:1px 6px;vertical-align:2px;">v2.8 全量版 · 10-19</span><small>人教版 · 深圳中考物理 · 每天40分钟</small></div>
     <div class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span>学习面板</div>
     <div class="nav-item" data-page="training"><span class="nav-icon">✏️</span>每日训练</div>
     <div class="nav-item" data-page="errors"><span class="nav-icon">📕</span>错题本</div>
@@ -7594,14 +7594,18 @@ function updateLever(F1, L1, F2, L2) {
   if (tilt < -30) tilt = -30;
   var bar = svg.querySelector('#lever-bar');
   bar.setAttribute('transform', 'rotate(' + tilt + ' 300 160)');
-  var tan = Math.tan(tilt * Math.PI / 180);
+  var rad = tilt * Math.PI / 180;
+  var cosT = Math.cos(rad), sinT = Math.sin(rad);
   var ns = 'http://www.w3.org/2000/svg';
-  // 画一侧挂物：作用点 x 随力臂 L（1 cm = 20 px），y 贴在倾斜后的杆上，箭头长度随力 F
+  // 画一侧挂物：作用点严格落在旋转后的杆身上（杆是刚性旋转，x/y 都要乘 cos/sin，
+  // 不能用 x=300±d 这种未旋转坐标，否则倾角大时箭头会漂出杆端）。
+  // 比例 1 cm = 18 px，L 最大 10 cm = 180 px < 杆半长 200 px，留 20 px 余量防标签出画布。
   function drawArm(id, L, F, color, side, name) {
     var g = svg.querySelector('#' + id);
     while (g.firstChild) g.removeChild(g.firstChild);
-    var x = 300 + side * L * 20;
-    var y = 160 + (x - 300) * tan;
+    var d = L * 18;
+    var x = 300 + side * d * cosT;
+    var y = 160 + side * d * sinT;
     var len = 10 + F * 1.5;
     function el(tag, attrs, txt) {
       var e = document.createElementNS(ns, tag);
